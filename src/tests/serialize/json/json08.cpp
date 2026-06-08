@@ -40,7 +40,7 @@ struct B : clife_base
 };
 
 template<typename ListT>
-struct L
+struct LST
 {
     ListT list;
     J_SERIALIZE_ONE( list )
@@ -55,7 +55,7 @@ TEST_CASE( "Serialize/Deserialize lst::List", "[json]" )
 
     SECTION( "Serialize lst::List<A>" )
     {
-        L<lst::List<A>> al;
+        LST<lst::List<A>> al;
         A* a1 = al.list.add();
         a1->p1 = 10;
         a1->p2 = "a1";
@@ -75,7 +75,7 @@ TEST_CASE( "Serialize/Deserialize lst::List", "[json]" )
     {
         QByteArray json = R"({"list":[{"p1":10,"p2":"a1"},null,{"p1":30,"p2":"a3"}]})";
 
-        L<lst::List<A>> al;
+        LST<lst::List<A>> al;
         pproto::SResult sr = al.fromJson(json);
 
         ALOG_FLUSH();
@@ -98,9 +98,36 @@ TEST_CASE( "Serialize/Deserialize lst::List", "[json]" )
         }
     }
 
+    SECTION( "Deserialize optional lst::List<A>" )
+    {
+        QByteArray json = R"({"list":[{"p1":10},null,{"p1":30,"p2":"a3"}]})";
+
+        LST<lst::List<A>> al;
+        pproto::SResult sr = al.fromJson(json);
+
+        ALOG_FLUSH();
+        REQUIRE( bool(sr) == true );
+
+        REQUIRE( al.list.count() == 3 );
+
+        if (al.list.count() == 3)
+        {
+            A* a1 = al.list.item(0);
+            REQUIRE( a1->p1 == 10 );
+            REQUIRE( a1->p2 == "a" );
+
+            A* a2 = al.list.item(1);
+            REQUIRE( a2 == nullptr );
+
+            A* a3 = al.list.item(2);
+            REQUIRE( a3->p1 == 30 );
+            REQUIRE( a3->p2 == "a3" );
+        }
+    }
+
     SECTION( "Serialize lst::List<B> (B derived from clife_base)" )
     {
-        L<lst::List<B, clife_alloc<B>>> bl;
+        LST<lst::List<B, clife_alloc<B>>> bl;
         B* b1 = bl.list.add();
         b1->p1 = 10;
         b1->p2 = "b1";
@@ -120,7 +147,7 @@ TEST_CASE( "Serialize/Deserialize lst::List", "[json]" )
     {
         QByteArray json = R"({"list":[{"p1":10,"p2":"b1"},null,{"p1":30,"p2":"b3"}]})";
 
-        L<lst::List<B, clife_alloc<B>>> bl;
+        LST<lst::List<B, clife_alloc<B>>> bl;
         pproto::SResult sr = bl.fromJson(json);
 
         ALOG_FLUSH();
@@ -142,6 +169,35 @@ TEST_CASE( "Serialize/Deserialize lst::List", "[json]" )
             REQUIRE( b3->clife_count() == 1 );
             REQUIRE( b3->p1 == 30 );
             REQUIRE( b3->p2 == "b3" );
+        }
+    }
+
+    SECTION( "Deserialize optional lst::List<B> (B derived from clife_base)" )
+    {
+        QByteArray json = R"({"list":[{"p1":10,"p2":"b1"},null,{"p1":30}]})";
+
+        LST<lst::List<B, clife_alloc<B>>> bl;
+        pproto::SResult sr = bl.fromJson(json);
+
+        ALOG_FLUSH();
+        REQUIRE( bool(sr) == true );
+
+        REQUIRE( bl.list.count() == 3 );
+
+        if (bl.list.count() == 3)
+        {
+            B* b1 = bl.list.item(0);
+            REQUIRE( b1->clife_count() == 1 );
+            REQUIRE( b1->p1 == 10 );
+            REQUIRE( b1->p2 == "b1" );
+
+            B* b2 = bl.list.item(1);
+            REQUIRE( b2 == nullptr );
+
+            B* b3 = bl.list.item(2);
+            REQUIRE( b3->clife_count() == 1 );
+            REQUIRE( b3->p1 == 30 );
+            REQUIRE( b3->p2 == "b" );
         }
     }
 }
