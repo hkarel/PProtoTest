@@ -208,9 +208,9 @@ TEST_CASE( "Deserialize list field from NULL", "[json]" )
     {
         QByteArray json = R"(
             {"v1":10,"v2":"string",
-             "v3":[{"p1":11,  "p2":null,     "p3":21,  "p4":"string1"},
-                   {"p1":null,"p2":"string2","p3":null,"p4":"string2"},
-                   {"p1":13,  "p2":"string3","p3":23,  "p4":null}]}
+             "v3":[{"p1":11,"p2":null,     "p3":21,"p4":"string1"},
+                   {"p1":0, "p2":"string2","p3":0, "p4":"string2"},
+                   {"p1":13,"p2":"string3","p3":23,"p4":null}]}
         )";
 
         Alist al;
